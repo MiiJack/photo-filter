@@ -1,13 +1,53 @@
 import { CameraView, CameraType, useCameraPermissions } from 'expo-camera';
 import * as MediaLibrary from 'expo-media-library';
 import { useState, useRef } from 'react';
-import { Button, StyleSheet, Text, TouchableOpacity, View, Alert } from 'react-native';
+import { Button, StyleSheet, Text, TouchableOpacity, View, Alert, Dimensions } from 'react-native';
+import {
+  Canvas,
+  Image,
+  useImage,
+  ColorMatrix,
+} from '@shopify/react-native-skia';
+
+const { width, height } = Dimensions.get('window');
+
+// Filter matrices
+const filters = {
+  normal: [
+    1, 0, 0, 0, 0,
+    0, 1, 0, 0, 0,
+    0, 0, 1, 0, 0,
+    0, 0, 0, 1, 0,
+  ],
+  sepia: [
+    0.393, 0.769, 0.189, 0, 0,
+    0.349, 0.686, 0.168, 0, 0,
+    0.272, 0.534, 0.131, 0, 0,
+    0, 0, 0, 1, 0,
+  ],
+  grayscale: [
+    0.2126, 0.7152, 0.0722, 0, 0,
+    0.2126, 0.7152, 0.0722, 0, 0,
+    0.2126, 0.7152, 0.0722, 0, 0,
+    0, 0, 0, 1, 0,
+  ],
+  vintage: [
+    0.9, 0.5, 0.1, 0, 0,
+    0.3, 0.8, 0.1, 0, 0,
+    0.2, 0.3, 0.5, 0, 0,
+    0, 0, 0, 1, 0,
+  ],
+};
 
 function CameraApp() {
   const [facing, setFacing] = useState<CameraType>('back');
   const [cameraPermission, requestCameraPermission] = useCameraPermissions();
   const [mediaPermission, requestMediaPermission] = MediaLibrary.usePermissions();
+  const [capturedImage, setCapturedImage] = useState<string | null>(null);
+  const [selectedFilter, setSelectedFilter] = useState('normal');
   const cameraRef = useRef<any>(null);
+
+  const image = useImage(capturedImage);
 
   if (!cameraPermission || !mediaPermission) {
     return <View />;
@@ -32,19 +72,86 @@ function CameraApp() {
     if (cameraRef.current) {
       try {
         const photo = await cameraRef.current.takePictureAsync();
-
-        const asset = await MediaLibrary.createAssetAsync(photo.uri);
-        await MediaLibrary.createAlbumAsync('Camera App', asset, false);
-
-        Alert.alert('Success', 'Photo saved to gallery!');
+        setCapturedImage(photo.uri);
       } catch (error) {
         Alert.alert('Error', 'Failed to take photo: ' + error.message);
       }
     }
   };
 
+  const savePhoto = async () => {
+    if (capturedImage) {
+      try {
+        const asset = await MediaLibrary.createAssetAsync(capturedImage);
+        await MediaLibrary.createAlbumAsync('Camera App', asset, false);
+        Alert.alert('Success', 'Photo saved to gallery!');
+        setCapturedImage(null); // Reset to camera view
+        // TODO: save filter
+      } catch (error) {
+        Alert.alert('Error', 'Failed to save photo: ' + error.message);
+      }
+    }
+  };
+
+  const retakePhoto = () => {
+    setCapturedImage(null);
+    setSelectedFilter('normal');
+  };
+
   function toggleCameraFacing() {
     setFacing(current => (current === 'back' ? 'front' : 'back'));
+  }
+
+  if (capturedImage && image) {
+    const imageWidth = image.width();
+    const imageHeight = image.height();
+    const scale = Math.min(width / imageWidth, height / imageHeight);
+    const scaledWidth = imageWidth * scale;
+    const scaledHeight = imageHeight * scale;
+
+    return (
+      <View style={styles.container}>
+        <Canvas style={styles.canvas}>
+          <Image
+            image={image}
+            x={0}
+            y={0}
+            width={width}
+            height={height}
+            fit="contain"
+          >
+            <ColorMatrix matrix={filters[selectedFilter]} />
+          </Image>
+        </Canvas>
+
+        <View style={styles.editButtonsContainer}>
+          <TouchableOpacity style={styles.editButton} onPress={retakePhoto}>
+            <Text style={styles.editButtonText}>Retake</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.editButton} onPress={savePhoto}>
+            <Text style={styles.editButtonText}>Save</Text>
+          </TouchableOpacity>
+        </View>
+
+        <View style={styles.filterContainer}>
+          {Object.keys(filters).map((filter) => (
+            <TouchableOpacity
+              key={filter}
+              style={[
+                styles.filterButton,
+                selectedFilter === filter && styles.filterButtonSelected,
+              ]}
+              onPress={() => setSelectedFilter(filter)}
+            >
+              <Text style={styles.filterButtonText}>
+                {filter.charAt(0).toUpperCase() + filter.slice(1)}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      </View>
+    );
   }
 
   return (
@@ -66,7 +173,6 @@ function CameraApp() {
           </TouchableOpacity>
 
           <View style={styles.button} />
-          <Text style={styles.text}></Text>
         </View>
       </CameraView>
     </View>
@@ -76,11 +182,16 @@ function CameraApp() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
+    backgroundColor: 'black',
+  },
+  canvas: {
+    flex: 1,
+    backgroundColor: 'black',
   },
   message: {
     textAlign: 'center',
     paddingBottom: 10,
+    color: 'white',
   },
   camera: {
     flex: 1,
@@ -115,6 +226,50 @@ const styles = StyleSheet.create({
     height: 60,
     borderRadius: 30,
     backgroundColor: 'white',
+  },
+  editButtonsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    padding: 20,
+    position: 'absolute',
+    bottom: 100,
+    left: 0,
+    right: 0,
+  },
+  editButton: {
+    backgroundColor: 'rgba(255, 255, 255, 0.3)',
+    padding: 12,
+    borderRadius: 8,
+    minWidth: 100,
+    alignItems: 'center',
+  },
+  editButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  filterContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    padding: 20,
+    position: 'absolute',
+    bottom: 20,
+    left: 0,
+    right: 0,
+  },
+  filterButton: {
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    padding: 8,
+    borderRadius: 8,
+    minWidth: 80,
+    alignItems: 'center',
+  },
+  filterButtonSelected: {
+    backgroundColor: 'rgba(255, 255, 255, 0.5)',
+  },
+  filterButtonText: {
+    color: 'white',
+    fontSize: 12,
   },
 });
 
