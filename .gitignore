@@ -5,6 +5,7 @@ node_modules/
 
 # Expo
 .expo/
+.expo-shared/
 dist/
 web-build/
 expo-env.d.ts
@@ -30,9 +31,43 @@ yarn-error.*
 *.pem
 
 # local env files
-.env*.local
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
 
 # typescript
 *.tsbuildinfo
 
-app-example
+# Android/IntelliJ
+android/build/
+android/.idea
+android/.gradle
+android/local.properties
+android/*.iml
+android/*.hprof
+android/.cxx/
+android/app/build/
+android/.settings
+android/.externalNativeBuild
+android/captures
+android/gradle.properties
+android/gradlew
+android/gradlew.bat
+android/gradle/
+android/app/google-services.json
+
+# iOS
+ios/Pods/
+ios/build/
+
+# Bundle artifacts
+*.jsbundle
+
+# React Native
+.buckconfig
+*.orig
+*.pyc
+*.swp
+*.lock

@@ -1,6 +1,6 @@
 import { CameraView, CameraType, useCameraPermissions } from 'expo-camera';
 import * as MediaLibrary from 'expo-media-library';
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect} from 'react';
 import { Button, StyleSheet, Text, TouchableOpacity, View, Alert, Dimensions } from 'react-native';
 import {
   Canvas,
@@ -8,6 +8,23 @@ import {
   useImage,
   ColorMatrix,
 } from '@shopify/react-native-skia';
+import messaging from '@react-native-firebase/messaging';
+
+async function requestUserPermission() {
+  const authStatus = await messaging().requestPermission();
+  const enabled =
+    authStatus === messaging.AuthorizationStatus.AUTHORIZED ||
+    authStatus === messaging.AuthorizationStatus.PROVISIONAL;
+
+  if (enabled) {
+    console.log('Authorization status:', authStatus);
+  }
+}
+
+const getToken = async()=> {
+  const token = await messaging().getToken()
+  console.log("Token = ", token)
+}
 
 const { width, height } = Dimensions.get('window');
 
@@ -40,6 +57,11 @@ const filters = {
 };
 
 function CameraApp() {
+useEffect(() => {
+  requestUserPermission()
+  getToken()
+},[])
+
   const [facing, setFacing] = useState<CameraType>('back');
   const [cameraPermission, requestCameraPermission] = useCameraPermissions();
   const [mediaPermission, requestMediaPermission] = MediaLibrary.usePermissions();

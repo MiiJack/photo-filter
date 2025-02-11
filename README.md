@@ -9,6 +9,9 @@ This is an [Expo](https://expo.dev) project created with [`create-expo-app`](htt
    ```bash
    npm install
    ```
+3. Add the google-services.json file:
+
+Obtain the google-services.json file from your Firebase project settings and place it in the ``android/app`` directory.
 
 2. Start the app
 
