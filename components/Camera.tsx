@@ -9,6 +9,15 @@ import {
   ColorMatrix,
 } from '@shopify/react-native-skia';
 import messaging from '@react-native-firebase/messaging';
+import * as Notifications from 'expo-notifications';
+
+Notifications.setNotificationHandler({
+    handleNotification: async () => ({
+        shouldShowAlert: true,
+        shouldPlaySound: true,
+        shouldSetBadge: true,
+    }),
+});
 
 async function requestUserPermission() {
   const authStatus = await messaging().requestPermission();
@@ -55,6 +64,17 @@ const filters = {
     0, 0, 0, 1, 0,
   ],
 };
+
+messaging().onMessage(async remoteMessage => {
+    await Notifications.scheduleNotificationAsync({
+        content:{
+            title: remoteMessage.notification?.title || 'New Notification',
+            body: remoteMessage.notification?.body || '',
+            data: remoteMessage.data,
+            },
+        trigger: null,
+        });
+    });
 
 function CameraApp() {
 useEffect(() => {
