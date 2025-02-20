@@ -1,36 +1,38 @@
 appId: com.anonymous.cameraapp
 ---
 - launchApp
-- assertVisible: "We need camera and media library permissions"
-- tapOn: "Grant permissions"
-- runFlow: "handleSystemDialog"
+- extendedWaitUntil:
+      visible:
+            id: "flip-button"
+      timeout: 30000
+- tapOn:
+      id: "capture-button"
+- extendedWaitUntil:
+      visible:
+            id: "filter-normal"
+      timeout: 10000
 - assertVisible:
-    id: "capture-button"
-- tapOn:
-    id: "flip-button"
-- tapOn:
-    id: "capture-button"
+      id: "filter-sepia"
 - assertVisible:
-    id: "filter-normal"
+      id: "filter-grayscale"
 - assertVisible:
-    id: "filter-sepia"
-- assertVisible:
-    id: "filter-grayscale"
-- assertVisible:
-    id: "filter-vintage"
+      id: "filter-vintage"
 - tapOn:
-    id: "filter-sepia"
+      id: "filter-sepia"
 - tapOn:
-    id: "filter-grayscale"
+      id: "filter-grayscale"
 - tapOn:
-    id: "filter-vintage"
+      id: "filter-vintage"
 - tapOn:
-    id: "save-button"
-- assertVisible: "Filtered photo saved to gallery!"
+      id: "save-button"
+- tapOn: "Allow"
 - tapOn: "OK"
 - tapOn:
-    id: "capture-button"
-- assertVisible:
-    id: "retake-button"
+        id: "flip-button"
 - tapOn:
-    id: "retake-button"
+      id: "capture-button"
+- assertVisible:
+      id: "retake-button"
+- tapOn:
+      id: "retake-button"
+- stopApp

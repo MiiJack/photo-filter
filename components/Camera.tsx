@@ -105,6 +105,7 @@ useEffect(() => {
             await requestMediaPermission();
           }}
           title="Grant permissions"
+          testID="grant-permissions-button"
         />
       </View>
     );
@@ -167,11 +168,11 @@ useEffect(() => {
         </Canvas>
 
         <View style={styles.editButtonsContainer}>
-          <TouchableOpacity style={styles.editButton} onPress={retakePhoto}>
+          <TouchableOpacity style={styles.editButton} onPress={retakePhoto} testID="retake-button">
             <Text style={styles.editButtonText}>Retake</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.editButton} onPress={savePhoto}>
+          <TouchableOpacity style={styles.editButton} onPress={savePhoto} testID="save-button">
             <Text style={styles.editButtonText}>Save</Text>
           </TouchableOpacity>
         </View>
@@ -185,6 +186,7 @@ useEffect(() => {
                 selectedFilter === filter && styles.filterButtonSelected,
               ]}
               onPress={() => setSelectedFilter(filter)}
+              testID={`filter-${filter}`}
             >
               <Text style={styles.filterButtonText}>
                 {filter.charAt(0).toUpperCase() + filter.slice(1)}
@@ -204,11 +206,11 @@ useEffect(() => {
         ref={cameraRef}
       >
         <View style={styles.buttonContainer}>
-          <TouchableOpacity style={styles.button} onPress={toggleCameraFacing}>
+          <TouchableOpacity style={styles.button} onPress={toggleCameraFacing} testID="flip-button">
             <Text style={styles.text}>Flip</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.button} onPress={takePicture}>
+          <TouchableOpacity style={styles.button} onPress={takePicture} testID="capture-button">
             <View style={styles.captureButton}>
               <View style={styles.captureButtonInner} />
             </View>
